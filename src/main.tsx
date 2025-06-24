@@ -8,7 +8,7 @@ import './index.css';
 const router = createRouter({ 
   routeTree,
   context: {
-    auth: undefined!
+    auth: undefined
   }
 });
 
