@@ -1,3 +1,4 @@
+import React from 'react';
 import { createFileRoute, redirect, useNavigate } from '@tanstack/react-router';
 import { useAuth } from '../../contexts/AuthContext';
 import OrdersPage from '../../components/OrdersPage';
