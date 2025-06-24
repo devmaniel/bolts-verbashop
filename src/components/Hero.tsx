@@ -1,15 +1,12 @@
 import React from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { useNavigate } from '@tanstack/react-router';
 
-interface HeroProps {
-  onCategoryClick?: (categoryId: string) => void;
-}
+const Hero: React.FC = () => {
+  const navigate = useNavigate();
 
-const Hero: React.FC<HeroProps> = ({ onCategoryClick }) => {
   const handleShopNowClick = () => {
-    if (onCategoryClick) {
-      onCategoryClick('electronics');
-    }
+    navigate({ to: '/category/$categoryId', params: { categoryId: 'electronics' } });
   };
 
   return (

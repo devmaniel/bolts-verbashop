@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
-import { Search, ShoppingCart, User, MapPin, ChevronDown, Menu, X, Package, Settings } from 'lucide-react';
+import { Search, ShoppingCart, User, MapPin, ChevronDown, Menu, X, Package, Settings, LogOut, Heart } from 'lucide-react';
+import { useNavigate, Link } from '@tanstack/react-router';
+import { useAuth } from '../contexts/AuthContext';
 
-interface HeaderProps {
-  onNavigate: (page: string, categoryId?: string) => void;
-}
-
-const Header: React.FC<HeaderProps> = ({ onNavigate }) => {
+const Header: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const navigate = useNavigate();
+  const { user, signOut } = useAuth();
 
   const categories = [
     { name: 'Electronics', id: 'electronics' },
@@ -20,26 +20,53 @@ const Header: React.FC<HeaderProps> = ({ onNavigate }) => {
   ];
 
   const handleCartClick = () => {
-    onNavigate('cart');
+    navigate({ to: '/cart' });
   };
 
   const handleOrdersClick = () => {
-    onNavigate('orders');
+    if (!user) {
+      navigate({ to: '/auth/login', search: { redirect: '/orders' } });
+      return;
+    }
+    navigate({ to: '/orders' });
   };
 
   const handleCategoryClick = (categoryId: string) => {
-    onNavigate('category', categoryId);
+    navigate({ to: '/category/$categoryId', params: { categoryId } });
     setIsMenuOpen(false);
   };
 
   const handleAuthClick = (page: string) => {
-    onNavigate(page);
+    navigate({ to: `/auth/${page}` });
     setIsUserMenuOpen(false);
   };
 
   const handleProfileSettingsClick = () => {
-    onNavigate('profile-settings');
+    if (!user) {
+      navigate({ to: '/auth/login', search: { redirect: '/profile/settings' } });
+      return;
+    }
+    navigate({ to: '/profile/settings' });
     setIsUserMenuOpen(false);
+  };
+
+  const handleWishlistClick = () => {
+    if (!user) {
+      navigate({ to: '/auth/login', search: { redirect: '/wishlist' } });
+      return;
+    }
+    navigate({ to: '/wishlist' });
+    setIsUserMenuOpen(false);
+  };
+
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+      setIsUserMenuOpen(false);
+      navigate({ to: '/' });
+    } catch (error) {
+      console.error('Error signing out:', error);
+    }
   };
 
   return (
@@ -73,12 +100,12 @@ const Header: React.FC<HeaderProps> = ({ onNavigate }) => {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <div className="flex-shrink-0">
-            <button 
-              onClick={() => onNavigate('home')}
+            <Link 
+              to="/"
               className="text-2xl font-bold text-gray-900 hover:text-blue-600 transition-colors"
             >
               VoiceShop
-            </button>
+            </Link>
           </div>
 
           {/* Search bar */}
@@ -102,47 +129,64 @@ const Header: React.FC<HeaderProps> = ({ onNavigate }) => {
                 className="flex items-center space-x-1 text-gray-700 hover:text-blue-600 transition-colors"
               >
                 <User className="h-5 w-5" />
-                <span className="hidden sm:inline">Account</span>
+                <span className="hidden sm:inline">
+                  {user ? `Hi, ${user.user_metadata?.firstName || user.email?.split('@')[0]}` : 'Account'}
+                </span>
                 <ChevronDown className="h-4 w-4" />
               </button>
               
               {isUserMenuOpen && (
                 <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
-                  <button 
-                    onClick={() => handleAuthClick('login')}
-                    className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center space-x-2"
-                  >
-                    <User className="h-4 w-4" />
-                    <span>Sign In</span>
-                  </button>
-                  <button 
-                    onClick={() => handleAuthClick('register')}
-                    className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center space-x-2"
-                  >
-                    <User className="h-4 w-4" />
-                    <span>Create Account</span>
-                  </button>
-                  <hr className="my-2" />
-                  <button 
-                    onClick={() => {
-                      onNavigate('orders');
-                      setIsUserMenuOpen(false);
-                    }}
-                    className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center space-x-2"
-                  >
-                    <Package className="h-4 w-4" />
-                    <span>My Orders</span>
-                  </button>
-                  <button 
-                    onClick={handleProfileSettingsClick}
-                    className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center space-x-2"
-                  >
-                    <Settings className="h-4 w-4" />
-                    <span>Profile Settings</span>
-                  </button>
-                  <button className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                    Wishlist
-                  </button>
+                  {!user ? (
+                    <>
+                      <button 
+                        onClick={() => handleAuthClick('login')}
+                        className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center space-x-2"
+                      >
+                        <User className="h-4 w-4" />
+                        <span>Sign In</span>
+                      </button>
+                      <button 
+                        onClick={() => handleAuthClick('register')}
+                        className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center space-x-2"
+                      >
+                        <User className="h-4 w-4" />
+                        <span>Create Account</span>
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <button 
+                        onClick={handleOrdersClick}
+                        className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center space-x-2"
+                      >
+                        <Package className="h-4 w-4" />
+                        <span>My Orders</span>
+                      </button>
+                      <button 
+                        onClick={handleWishlistClick}
+                        className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center space-x-2"
+                      >
+                        <Heart className="h-4 w-4" />
+                        <span>Wishlist</span>
+                      </button>
+                      <button 
+                        onClick={handleProfileSettingsClick}
+                        className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center space-x-2"
+                      >
+                        <Settings className="h-4 w-4" />
+                        <span>Profile Settings</span>
+                      </button>
+                      <hr className="my-2" />
+                      <button 
+                        onClick={handleSignOut}
+                        className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center space-x-2"
+                      >
+                        <LogOut className="h-4 w-4" />
+                        <span>Sign Out</span>
+                      </button>
+                    </>
+                  )}
                 </div>
               )}
             </div>
