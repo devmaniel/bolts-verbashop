@@ -16,6 +16,7 @@ import PendingOrderPage from './components/PendingOrderPage';
 import OrdersPage from './components/OrdersPage';
 import LoginPage from './components/LoginPage';
 import RegisterPage from './components/RegisterPage';
+import ProfileSettingsPage from './components/ProfileSettingsPage';
 
 function App() {
   const [currentPage, setCurrentPage] = useState('home');
@@ -80,6 +81,12 @@ function App() {
             onRegisterSuccess={handleRegisterSuccess}
           />
         );
+      case 'profile-settings':
+        return (
+          <ProfileSettingsPage
+            onBack={() => setCurrentPage('home')}
+          />
+        );
       case 'category':
         if (selectedCategoryId === 'electronics') {
           // Keep the old electronics page for backward compatibility
@@ -124,14 +131,14 @@ function App() {
     }
   };
 
-  // Don't render header and footer for auth pages
-  const isAuthPage = currentPage === 'login' || currentPage === 'register';
+  // Don't render header and footer for auth pages and profile settings
+  const isFullPageComponent = currentPage === 'login' || currentPage === 'register' || currentPage === 'profile-settings';
 
   return (
     <div className="min-h-screen bg-white">
-      {!isAuthPage && <Header onNavigate={handleNavigate} />}
+      {!isFullPageComponent && <Header onNavigate={handleNavigate} />}
       {renderPage()}
-      {!isAuthPage && <Footer />}
+      {!isFullPageComponent && <Footer />}
     </div>
   );
 }

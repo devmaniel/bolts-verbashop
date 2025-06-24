@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, ShoppingCart, User, MapPin, ChevronDown, Menu, X, Package } from 'lucide-react';
+import { Search, ShoppingCart, User, MapPin, ChevronDown, Menu, X, Package, Settings } from 'lucide-react';
 
 interface HeaderProps {
   onNavigate: (page: string, categoryId?: string) => void;
@@ -34,6 +34,11 @@ const Header: React.FC<HeaderProps> = ({ onNavigate }) => {
 
   const handleAuthClick = (page: string) => {
     onNavigate(page);
+    setIsUserMenuOpen(false);
+  };
+
+  const handleProfileSettingsClick = () => {
+    onNavigate('profile-settings');
     setIsUserMenuOpen(false);
   };
 
@@ -128,8 +133,12 @@ const Header: React.FC<HeaderProps> = ({ onNavigate }) => {
                     <Package className="h-4 w-4" />
                     <span>My Orders</span>
                   </button>
-                  <button className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                    Profile Settings
+                  <button 
+                    onClick={handleProfileSettingsClick}
+                    className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center space-x-2"
+                  >
+                    <Settings className="h-4 w-4" />
+                    <span>Profile Settings</span>
                   </button>
                   <button className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                     Wishlist
