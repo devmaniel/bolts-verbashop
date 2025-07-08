@@ -1,11 +1,10 @@
 import React from 'react';
 import { ChevronRight, Smartphone, Droplets, Zap, Sofa, Watch, Flower, Gem } from 'lucide-react';
+import { useNavigate } from '@tanstack/react-router';
 
-interface TopCategoriesProps {
-  onCategoryClick?: (categoryId: string) => void;
-}
+const TopCategories: React.FC = () => {
+  const navigate = useNavigate();
 
-const TopCategories: React.FC<TopCategoriesProps> = ({ onCategoryClick }) => {
   const categories = [
     { 
       name: 'Mobile', 
@@ -52,9 +51,7 @@ const TopCategories: React.FC<TopCategoriesProps> = ({ onCategoryClick }) => {
   ];
 
   const handleCategoryClick = (categoryId: string) => {
-    if (onCategoryClick) {
-      onCategoryClick(categoryId);
-    }
+    navigate({ to: '/category/$categoryId', params: { categoryId } });
   };
 
   return (

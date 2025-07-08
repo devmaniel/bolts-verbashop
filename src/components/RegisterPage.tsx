@@ -18,14 +18,16 @@ import {
   Check,
   X
 } from 'lucide-react';
+import { useNavigate } from '@tanstack/react-router';
 
 interface RegisterPageProps {
   onBack: () => void;
   onSwitchToLogin: () => void;
   onRegisterSuccess: () => void;
+  signUp: (email: string, password: string, userData?: any) => Promise<void>;
 }
 
-const RegisterPage: React.FC<RegisterPageProps> = ({ onBack, onSwitchToLogin, onRegisterSuccess }) => {
+const RegisterPage: React.FC<RegisterPageProps> = ({ onBack, onSwitchToLogin, onRegisterSuccess, signUp }) => {
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState({
     firstName: '',
@@ -46,6 +48,7 @@ const RegisterPage: React.FC<RegisterPageProps> = ({ onBack, onSwitchToLogin, on
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
   const [showAnimation, setShowAnimation] = useState(false);
+  const navigate = useNavigate();
 
   React.useEffect(() => {
     setTimeout(() => setShowAnimation(true), 100);
@@ -132,11 +135,32 @@ const RegisterPage: React.FC<RegisterPageProps> = ({ onBack, onSwitchToLogin, on
 
     setIsLoading(true);
     
-    // Simulate API call
-    setTimeout(() => {
-      setIsLoading(false);
+    try {
+      await signUp(formData.email, formData.password, {
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        phone: formData.phone,
+        dateOfBirth: formData.dateOfBirth,
+        address: formData.address,
+        city: formData.city,
+        zipCode: formData.zipCode
+      });
+      
       onRegisterSuccess();
-    }, 2000);
+      
+      // Check for redirect parameter
+      const searchParams = new URLSearchParams(window.location.search);
+      const redirect = searchParams.get('redirect');
+      if (redirect) {
+        navigate({ to: redirect });
+      } else {
+        navigate({ to: '/' });
+      }
+    } catch (error: any) {
+      setErrors({ general: error.message || 'Registration failed. Please try again.' });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleInputChange = (field: string, value: string | boolean) => {
@@ -216,6 +240,16 @@ const RegisterPage: React.FC<RegisterPageProps> = ({ onBack, onSwitchToLogin, on
               </div>
             </div>
           </div>
+
+          {/* Error Message */}
+          {errors.general && (
+            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl">
+              <div className="flex items-center">
+                <AlertCircle className="h-5 w-5 text-red-500 mr-2" />
+                <span className="text-red-700 text-sm">{errors.general}</span>
+              </div>
+            </div>
+          )}
 
           {/* Step 1: Personal Information */}
           {currentStep === 1 && (

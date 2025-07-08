@@ -16,14 +16,16 @@ import {
   Heart,
   ShoppingBag
 } from 'lucide-react';
+import { useNavigate } from '@tanstack/react-router';
 
 interface LoginPageProps {
   onBack: () => void;
   onSwitchToRegister: () => void;
   onLoginSuccess: () => void;
+  signIn: (email: string, password: string) => Promise<void>;
 }
 
-const LoginPage: React.FC<LoginPageProps> = ({ onBack, onSwitchToRegister, onLoginSuccess }) => {
+const LoginPage: React.FC<LoginPageProps> = ({ onBack, onSwitchToRegister, onLoginSuccess, signIn }) => {
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -33,6 +35,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onBack, onSwitchToRegister, onLog
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
   const [showAnimation, setShowAnimation] = useState(false);
+  const navigate = useNavigate();
 
   React.useEffect(() => {
     setTimeout(() => setShowAnimation(true), 100);
@@ -64,11 +67,23 @@ const LoginPage: React.FC<LoginPageProps> = ({ onBack, onSwitchToRegister, onLog
 
     setIsLoading(true);
     
-    // Simulate API call
-    setTimeout(() => {
-      setIsLoading(false);
+    try {
+      await signIn(formData.email, formData.password);
       onLoginSuccess();
-    }, 2000);
+      
+      // Check for redirect parameter
+      const searchParams = new URLSearchParams(window.location.search);
+      const redirect = searchParams.get('redirect');
+      if (redirect) {
+        navigate({ to: redirect });
+      } else {
+        navigate({ to: '/' });
+      }
+    } catch (error: any) {
+      setErrors({ general: error.message || 'Login failed. Please try again.' });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleInputChange = (field: string, value: string | boolean) => {
@@ -127,6 +142,16 @@ const LoginPage: React.FC<LoginPageProps> = ({ onBack, onSwitchToRegister, onLog
               <span className="px-4 bg-white text-gray-500">Or continue with email</span>
             </div>
           </div>
+
+          {/* Error Message */}
+          {errors.general && (
+            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl">
+              <div className="flex items-center">
+                <AlertCircle className="h-5 w-5 text-red-500 mr-2" />
+                <span className="text-red-700 text-sm">{errors.general}</span>
+              </div>
+            </div>
+          )}
 
           {/* Login Form */}
           <form onSubmit={handleSubmit} className="space-y-6">
